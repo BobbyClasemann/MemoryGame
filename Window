@@ -1,0 +1,273 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.swing.*;
+
+public class Window extends JFrame{
+	
+	private final int WINDOW_WIDTH = 400;
+	private final int WINDOW_HEIGHT = 400;
+	private ArrayList<Card> memory = new ArrayList();
+	private int clickCount = 0;
+	private int matchCount = 0;
+	private Card card1 = null;
+	private Card card2 = null;
+	private boolean clicksAllowed = true;
+	private JLabel label = new JLabel();
+	private JPanel panel = new JPanel(new GridLayout(4,4));
+	
+	/***************************************************
+	 * Sets up the layout of the window that will be 
+	 * displayed.
+	 * 
+	 * Precondition: None
+	 * Postcondition: Displays window to user.
+	 ***************************************************/
+	public Window(){
+		super("Grid Layout");
+		JFrame frame = new JFrame("Memory Game");
+		
+		frame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new BorderLayout());
+		frame.setMinimumSize(new Dimension(400, 400));
+		label.setText("Number of moves: " + clickCount);
+		
+	
+		setCards();
+		//create individual buttons for each panel on the window
+		for(int i = 0; i < 16; i++){
+			JButton button = new JButton();
+			memory.get(i).setButton(button);
+			memory.get(i).getButton().setIcon(new ImageIcon(
+							memory.get(i).getForegroundImage()));
+			memory.get(i).getButton().addActionListener(new CardListener(i));
+			panel.add(memory.get(i).getButton());
+		}
+		
+		//set up frame
+		myMenuBar(frame);
+		frame.add(panel, BorderLayout.CENTER);
+		frame.add(label, BorderLayout.SOUTH);
+		frame.pack();
+		frame.setVisible(true);
+	
+	}
+	
+	/**
+	 * Adds the images to each button and sets if
+	 * they're flipped to false to the array list.
+	 * 
+	 * Precondition: None
+	 * Postcondition: background image and boolean
+	 * flipped is added to array list.
+	 */
+	public void setCards(){
+		for(int i = 0; i < 8; i++){
+			Card card = new Card();
+			card.setBackGroundImage("fruit" + i + ".png");
+			card.setFlipped(false);
+			memory.add(card);
+			Card card2 = new Card();
+			card2.setBackGroundImage("fruit" + i + ".png");
+			card2.setFlipped(false);
+			memory.add(card2);	
+		}
+		
+		Collections.shuffle(memory);
+	}
+	
+	/**
+	 * Action listener for a button being pressed.
+	 */
+	private class CardListener implements ActionListener {
+		private int number;		//assign number the index of array list
+		
+		
+		CardListener(int number){
+			this.number = number;
+		}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		
+			//check if the card is flipped and if timer is active
+			if(memory.get(number).getFlipped() == false
+												&& clicksAllowed == true){
+				//set the background image to the button pressed
+			memory.get(number).getButton().setIcon(new ImageIcon( 	
+								memory.get(number).getBackGroundImage()));
+			memory.get(number).setFlipped(true); //set object is flipped
+				if(card1 == null){ 	//check if first card is flipped
+					card1 = memory.get(number);
+				}
+				else{ 			
+					clickCount++;
+					label.setText("Number of moves: " + clickCount);
+					//first card is flipped and assign second card
+					card2 = memory.get(number);
+						//if cards don't match, flip cards back over
+						if(!(card1.getBackGroundImage().equals(
+										card2.getBackGroundImage()))){
+							clicksAllowed = false;
+							flipOverCards(card1, card2);
+						}
+						else
+							gameOver();
+						
+						card1 = null;
+					}
+				}
+			}
+		}
+	
+	/**
+	 * Sets each card to the default image and assign
+	 * the objects to not flipped.
+	 * 
+	 * @param card the card being flipped
+	 * @param card2 the card being flipped
+	 */
+	private void flipOverCards(Card card, Card card2){
+		
+		
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+			card.getButton().setIcon(new ImageIcon(
+											card.getForegroundImage()));
+			card2.getButton().setIcon(new ImageIcon(
+											card2.getForegroundImage()));
+			card.setFlipped(false);
+			card2.setFlipped(false);
+			clicksAllowed = true;
+			}
+			
+		}, 2000);
+	}
+	
+	/**
+	 * Sets up the menu for the JFrame.
+	 * 
+	 * @param frame the frame being implemented
+	 */
+	public void myMenuBar(JFrame frame){
+		
+		//create the menu bar
+		JMenuBar menuBar = new JMenuBar();
+		frame.setJMenuBar(menuBar);
+		
+		//add file to menu bar
+		JMenu menuFile = new JMenu("File");
+		menuBar.add(menuFile);
+		
+		//add exit to file menu
+		JMenuItem fileExit = new JMenuItem("Exit");
+		fileExit.addActionListener(new ExitListener());
+		menuFile.add(fileExit);
+		
+		//add game menu to menu bar
+		JMenu menuGame = new JMenu("Game");
+		menuBar.add(menuGame);
+		
+		//add restart to game menu
+		JMenuItem restart = new JMenuItem("Restart");
+		restart.addActionListener(new RestartListener());
+		menuGame.add(restart);
+		
+		//add new game to game menu
+		JMenuItem newGame = new JMenuItem("New Game");
+		newGame.addActionListener(new NewGameListener());
+		menuGame.add(newGame);	
+	
+	}
+	
+	/**
+	 * Displays a window screen to congratulate user for completing the game
+	 * and the total moves.
+	 * Precondition: None
+	 * Postcondition: Displays window box.
+	 */
+	public void gameOver(){
+		matchCount++;
+		if(matchCount == 8){
+			JOptionPane.showMessageDialog(null, 
+					"Congratulations! You win!   Total moves: " + clickCount);
+		}
+	}
+
+	/**
+	 * Action listener for exit being pressed
+	 */
+	private class ExitListener implements ActionListener {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int value;
+			value = JOptionPane.showConfirmDialog(null,
+							"Are you sure you want to exit the program?");
+			if (value == JOptionPane.YES_OPTION){
+				System.exit(0);
+			}
+		}
+	}
+	
+	/**
+	 * Action listener for restart being pressed
+	 */
+	private class RestartListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			clickCount = 0;		//reset click count
+			matchCount = 0;
+			//reset buttons back to default image and reset flips and count
+			for(int i = 0; i < 16; i++){
+				memory.get(i).getButton().setIcon(new ImageIcon(
+									memory.get(i).getForegroundImage()));
+				memory.get(i).setFlipped(false);
+			}
+			label.setText("Number of moves: " + clickCount);
+		}
+		
+	}
+	
+	/**
+	 * Action listener for new game being pressed
+	 */
+	private class NewGameListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			
+			clickCount = 0;		//reset click count
+			matchCount = 0;
+			
+			//remove buttons from the panel
+			for(int i = 0; i < 16; i++){
+				panel.remove(memory.get(i).getButton());
+			}
+			memory.removeAll(memory); //erase objects from array list
+			setCards();
+			
+			//add card objects to array list again
+			for(int i = 0; i < 16; i++){
+				JButton button = new JButton();
+				memory.get(i).setButton(button);
+				memory.get(i).getButton().setIcon(new ImageIcon(
+								memory.get(i).getForegroundImage()));
+				memory.get(i).getButton().addActionListener(
+										new CardListener(i));
+				panel.add(memory.get(i).getButton());
+			}
+			label.setText("Number of moves: " + clickCount);
+			
+		}
+		
+	}
+
+}
