@@ -1,0 +1,37 @@
+import javax.swing.JButton;
+
+public class Card {
+	
+	private JButton button = new JButton();
+	private String foregroundImg = "ghost.png";
+	private String backgroundImg;
+	private boolean flipped;
+	
+	public JButton getButton(){
+		return button;
+	}
+	
+	public void setButton(JButton button){
+		this.button = button;
+	}
+	public String getForegroundImage(){
+		return foregroundImg;
+	}
+	
+	public void setBackGroundImage(String backgroundImg){
+		
+		this.backgroundImg = backgroundImg;
+	}
+	
+	public String getBackGroundImage(){
+		return backgroundImg;
+	}
+	
+	public void setFlipped(boolean flipped){
+		this.flipped = flipped;
+	}
+	
+	public boolean getFlipped(){
+		return flipped;
+	}
+}
